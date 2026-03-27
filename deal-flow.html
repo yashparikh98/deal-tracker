@@ -156,7 +156,14 @@
   .btn-save:hover { background: var(--surface2); }
 
   .export-row { margin-top: 40px; padding-top: 24px; border-top: 0.5px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  .thesis-block { border: 0.5px solid var(--border); padding: 24px 28px; margin-bottom: 16px; background: var(--surface); }
+  .thesis-previews { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 0.5px solid var(--border); margin-bottom: 24px; }
+  .thesis-preview { background: var(--surface); padding: 24px 28px; cursor: pointer; transition: background 0.12s; }
+  .thesis-preview:hover { background: var(--surface2); }
+  .thesis-preview-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent2); margin-bottom: 10px; }
+  .thesis-preview-headline { font-family: 'Cormorant', serif; font-size: 17px; font-weight: 400; color: var(--text); line-height: 1.35; margin-bottom: 16px; }
+  .thesis-preview-stats { display: flex; gap: 24px; border-top: 0.5px solid var(--border); padding-top: 14px; }
+  .thesis-preview-stat-num { font-family: 'Cormorant', serif; font-size: 22px; color: var(--accent); font-weight: 500; line-height: 1; }
+  .thesis-preview-stat-label { font-size: 9px; color: var(--text3); margin-top: 3px; letter-spacing: 0.04em; }
   .thesis-sector-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent2); margin-bottom: 10px; }
   .thesis-headline { font-family: 'Cormorant', serif; font-size: 22px; font-weight: 400; color: var(--text); line-height: 1.3; margin-bottom: 16px; }
   .thesis-funnel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; border-top: 0.5px solid var(--border); padding-top: 18px; margin-top: 4px; }
@@ -198,6 +205,7 @@
   </header>
 
   <div class="filter-row" id="filter-row"></div>
+  <div id="thesis-previews"></div>
   <div id="thesis-block"></div>
   <div class="table-container">
     <div class="table-head">
@@ -473,7 +481,7 @@ function setDates() {
 
 // ─── FILTERS ─────────────────────────────────────────────────────────────────
 function renderFilters() {
-  const groups = ["All", "Trading / Prediction Markets", ...new Set(deals.flatMap(d => d.sectorGroup)).filter(g => g !== "Trading / Prediction Markets"), "AI"];
+  const groups = ["All", "Trading / Prediction Markets", ...[...new Set(deals.flatMap(d => d.sectorGroup))].filter(g => g !== "Trading / Prediction Markets"), "AI"];
   document.getElementById("filter-row").innerHTML = groups.map(g =>
     `<button class="filter-btn ${g === activeFilter ? "active" : ""}" onclick="setFilter('${g}')">${g}</button>`
   ).join("");
@@ -482,6 +490,7 @@ function renderFilters() {
 function setFilter(g) {
   activeFilter = g;
   renderFilters();
+  renderPreviews(g);
   renderThesis(g);
   renderDeals();
 }
@@ -715,6 +724,21 @@ const theses = {
   }
 };
 
+function renderPreviews(filter) {
+  const block = document.getElementById("thesis-previews");
+  if (filter !== "All") { block.innerHTML = ""; return; }
+  const sectors = Object.entries(theses).filter(([k, t]) => t.stats.length > 0);
+  block.innerHTML = `<div class="thesis-previews">${sectors.map(([sector, t]) => `
+    <div class="thesis-preview" onclick="setFilter('${sector}')">
+      <div class="thesis-preview-label">${sector}</div>
+      <div class="thesis-preview-headline">${t.headline}</div>
+      <div class="thesis-preview-stats">
+        ${t.stats.map(s => `<div><div class="thesis-preview-stat-num">${s.num}</div><div class="thesis-preview-stat-label">${s.label}</div></div>`).join("")}
+      </div>
+    </div>
+  `).join("")}</div>`;
+}
+
 function renderThesis(filter) {
   const block = document.getElementById("thesis-block");
   if (filter === "All") {
@@ -757,6 +781,7 @@ function renderThesisBlock(sector, t) {
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 setDates();
 renderFilters();
+renderPreviews("All");
 renderThesis("All");
 renderDeals();
 </script>
