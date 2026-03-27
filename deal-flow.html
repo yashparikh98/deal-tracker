@@ -186,6 +186,9 @@
     .form-grid { grid-template-columns: 1fr; }
     .form-full { grid-column: 1; }
   }
+  .edit-only { display: none; }
+  .edit-enabled .edit-only { display: inline-flex; }
+  .thesis-preview-hint { font-size: 9px; letter-spacing: 0.08em; color: var(--text3); margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -199,7 +202,7 @@
       </div>
       <div class="header-meta">
         <div class="meta-date" id="update-date"></div>
-        <button class="add-btn" onclick="openModal()">+ Add Deal</button>
+        <button class="add-btn edit-only" onclick="openModal()">+ Add Deal</button>
       </div>
     </div>
   </header>
@@ -222,7 +225,7 @@
 
   <div class="export-row">
     <div class="export-note">Last updated: <span id="footer-date"></span></div>
-    <button class="export-btn" onclick="exportHTML()">Export updated file ↓</button>
+    <button class="export-btn edit-only" onclick="exportHTML()">Export updated file ↓</button>
   </div>
 </div>
 
@@ -524,7 +527,7 @@ function renderDeals() {
         <div class="td"><span class="amount-text">${d.raised}</span></div>
         <div class="td"><span class="row-date">${d.date}</span></div>
         <div class="td">${d.raising ? `<span class="raising-badge"><span class="raising-dot"></span>Open</span>` : ""}</div>
-        <div class="td row-actions" onclick="event.stopPropagation()">
+        <div class="td row-actions edit-only" onclick="event.stopPropagation()">
           <button class="row-btn" onclick="editDeal(${d.id})">Edit</button>
           <button class="row-btn del" onclick="deleteDeal(${d.id})">Del</button>
         </div>
@@ -735,6 +738,7 @@ function renderPreviews(filter) {
       <div class="thesis-preview-stats">
         ${t.stats.map(s => `<div><div class="thesis-preview-stat-num">${s.num}</div><div class="thesis-preview-stat-label">${s.label}</div></div>`).join("")}
       </div>
+      <div class="thesis-preview-hint">click to expand →</div>
     </div>
   `).join("")}</div>`;
 }
@@ -770,13 +774,28 @@ function renderThesisBlock(sector, t) {
       ${charts.length ? `<div style="display:grid;grid-template-columns:${charts.length > 1 ? '1fr 1fr' : '1fr'};gap:16px;margin:20px 0;">
         ${charts.map(c => `<img src="${c}" style="width:100%;border-radius:4px;" alt="Prediction market chart">`).join("")}
       </div>` : ""}
-      ${t.chartId ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin-top:16px;">
-        <img src="${document.getElementById(t.chartId) ? document.getElementById(t.chartId).src : ''}" style="width:100%;border-radius:4px;filter:invert(1) hue-rotate(180deg);">
-        <div class="thesis-funnel-value" style="white-space:pre-line;">${t.thesis || t.data}</div>
-      </div>` : `<div class="thesis-funnel-value" style="white-space:pre-line;margin-top:16px;">${t.thesis || t.data}</div>`}
+      ${t.chartId ? `<div style="margin-top:16px;"><img src="${document.getElementById(t.chartId) ? document.getElementById(t.chartId).src : ''}" style="float:left;width:48%;margin:0 24px 16px 0;border-radius:4px;filter:invert(1) hue-rotate(180deg);"><div class="thesis-funnel-value" style="white-space:pre-line;">${t.thesis || t.data}</div><div style="clear:both;"></div></div>` : `<div class="thesis-funnel-value" style="white-space:pre-line;margin-top:16px;">${t.thesis || t.data}</div>`}
     </div>
   `;
 }
+
+// ─── PASSWORD ────────────────────────────────────────────────────────────────
+const EDIT_PASSWORD = "tracker123";
+let editMode = false;
+
+function tryUnlock() {
+  const pw = prompt("Enter edit password:");
+  if (pw === EDIT_PASSWORD) {
+    editMode = true;
+    document.body.classList.add("edit-enabled");
+  } else if (pw !== null) {
+    alert("Incorrect password.");
+  }
+}
+
+document.addEventListener("keydown", e => {
+  if (e.key === "e" && e.metaKey) { e.preventDefault(); tryUnlock(); }
+});
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 setDates();
