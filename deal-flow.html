@@ -473,7 +473,7 @@ function setDates() {
 
 // ─── FILTERS ─────────────────────────────────────────────────────────────────
 function renderFilters() {
-  const groups = ["All", ...new Set(deals.flatMap(d => d.sectorGroup)), "AI"];
+  const groups = ["All", "Trading / Prediction Markets", ...new Set(deals.flatMap(d => d.sectorGroup)).filter(g => g !== "Trading / Prediction Markets"), "AI"];
   document.getElementById("filter-row").innerHTML = groups.map(g =>
     `<button class="filter-btn ${g === activeFilter ? "active" : ""}" onclick="setFilter('${g}')">${g}</button>`
   ).join("");
